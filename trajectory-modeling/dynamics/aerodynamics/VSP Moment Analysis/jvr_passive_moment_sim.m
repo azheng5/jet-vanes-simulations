@@ -1,0 +1,118 @@
+function [D0, L, Di, M_ps] = jvr_passive_moment_sim(v, h, t, aoa)
+
+% Aerodynamic passive moment model approximation based on VSP model
+% coefficient, moment calculations, and some corrections. Modeled for
+% DesignStudyH, N1000 motor in OpenRocket
+
+% v: magnitude of freestream velocity, ft/s
+% h: altitude, ft
+% t: time since launch, s
+% aoa: angle of attack, deg
+% M_ps: passive stability moment, lb-ft
+
+
+% CONSTANTS
+
+% geometric
+Sref = 192/144; %ft^2;
+b = 16/12; %ft
+AR = b^2/Sref;
+
+CG_loc = load('cg_location.csv');
+times = CG_loc(:,1);
+CGs = CG_loc(:,2);
+CG = interp1(times, CGs, t, 'linear', 'extrap'); %ft
+CP = 8.9167; %ft, assume consant
+CPf = 9.9710; %ft, assume constant
+
+% atm conditions
+[~, a, ~, rho] = atmosisa(h*3.28084); 
+a = a*3.28084; %ft/s
+rho = rho*0.00194032; %slug/ft^3
+M = v/a;
+
+q = 0.5*rho*v^2; %lb/ft^2
+
+
+% CALCULATIONS
+
+% Fin incompressible CL and CDi (from VSP)
+
+VSPdata = [0.000000000000	0.000000000000	0.000000000000;
+2.000000000000	0.036029340736	0.000631504989;
+4.000000000000	0.072398368733	0.002551678641;
+6.000000000000	0.108755531024	0.005768839493;
+8.000000000000	0.145190990514	0.010312947650;
+10.000000000000	0.181129886127	0.016137808872];
+
+aoaData = VSPdata(:,1);
+CLData = VSPdata(:,2);
+CDiData = VSPdata(:,3);
+
+% interpolate for incompressible CL
+CLinc = interp1(aoaData, CLData, aoa, 'linear', 'extrap');
+
+% Karman-Tsien compressibility correction
+CL = CLinc/(sqrt(1-M^2)+(CLinc/2)*(M^2/(1+sqrt(1-M^2))));
+L = CL*q*Sref; %lb
+
+% find induced drag from lift and e
+eq = polyfit(CLData,CDiData,2);
+A = eq(1);
+CDi = A*CL^2;
+Di = CDi*q*Sref; %lb
+
+% CD0 estimation from VSP
+% Excrescence factor 1.3, laminar - Blasius, turbulent - Schlichting compressible,
+% Hoerner FF eq
+% assume CD0 constant with aoa
+
+vData = [0, 111.645, 223.290, 334.935, 446.580, 558.225, 669.870]; %ft/s
+hData = [0, 500, 1000, 1500, 2000, 2500]; %ft
+CD0Data = [0, 0, 0, 0, 0, 0;
+    0.0589, 0.05901, 0.05911, 0.05922, 0.05933, 0.05944;
+    0.05322, 0.05332, 0.05341, 0.0535, 0.05359, 0.05369;
+    0.05025, 0.05033, 0.05042, 0.05051, 0.05059, 0.05068;
+    0.04828, 0.04836, 0.04844, 0.04852, 0.0486, 0.04868;
+    0.04682, 0.04689, 0.04696, 0.04705, 0.04713, 0.04721;
+    0.04568, 0.04575, 0.04583, 0.0459, 0.04598, 0.04605];
+
+CD0 = interp2(hData, vData, CD0Data, h, v,'linear',0.05);
+D0 = CD0*q*Sref; %lb
+
+
+% magnitude of passive stability moment, direction is in plane of heading
+% vector and velocity vector
+
+M_ps = D0*sind(aoa)*(CP-CG) + L*cosd(aoa)*(CPf-CG) + Di*sind(aoa)*(CPf-CG); %lb-ft
+
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+

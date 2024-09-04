@@ -1,0 +1,22 @@
+...Comp Geom...
+3 Num Comps
+6 Total Num Meshes
+10576 Total Num Tris
+
+Theo_Area   Wet_Area   Theo_Vol    Wet_Vol  Name
+ 2225.870   2216.442   2151.233   2144.515  body           
+  375.537    341.271    444.606    404.490  nosecone       
+  194.885    194.885     11.606     11.606  fins_xy        
+  194.885    194.885     11.606     11.606  fins_xy        
+  194.885    194.885     11.606     11.606  fins_xy        
+  194.885    194.885     11.606     11.606  fins_xy        
+-------------------------------------------------
+ 3380.946   3337.253   2642.262   2595.428  Totals         
+
+Tag_Theo_Area   Tag_Wet_Area    Tag_Name
+     2225.870       2216.442    body_S_Surf0   
+      375.537        341.271    nosecone_S_Surf0
+      194.885        194.885    fins_xy_S_Surf0
+      194.885        194.885    fins_xy_S_Surf1
+      194.885        194.885    fins_xy_S_Surf2
+      194.885        194.885    fins_xy_S_Surf3
